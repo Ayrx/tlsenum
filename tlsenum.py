@@ -453,6 +453,9 @@ def main():
     args = parser.parse_args()
 
     cipher_list = [x for x in tls_mapping]
+    supported_ciphers = []
+    max_tls_ver = 0x00
+
     try:
         while len(cipher_list) > 0:
             client_hello = build_client_hello(
@@ -463,10 +466,20 @@ def main():
                 args.host, args.port, client_hello
             )
             tls_ver, cipher = parse_server_hello(server_hello)
-            print(cipher)
+
+            if tls_version[tls_ver] > max_tls_ver:
+                max_tls_ver = tls_version[tls_ver]
+
+            supported_ciphers.append(cipher)
             cipher_list.remove(cipher)
     except ValueError:
         pass
+
+    print("Maximum TLS version supported by server: ",
+           inverse_tls_version[max_tls_ver])
+    print("Supported Cipher suites in order of priority: ")
+    for i in supported_ciphers:
+        print(i)
 
 if __name__ == "__main__":
     main()
