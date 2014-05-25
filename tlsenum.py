@@ -338,8 +338,7 @@ inverse_tls_version = {v: k for k, v in tls_version.items()}
 
 
 def int_to_hex_octet(value):
-    x = "%04X" % value
-    return int(x[:2], 16), int(x[2:], 16)
+    return value // 256, value % 256
 
 
 def get_cipher_value(list_of_ciphers):
@@ -351,66 +350,25 @@ def get_cipher_value(list_of_ciphers):
     return ciphers
 
 
-def build_sni(hostname):
+def build_sni_extension(hostname):
     encoded_hostname = hostname.encode("idna")
     encoded_hostname_length = len(encoded_hostname)
     x, y = int_to_hex_octet(encoded_hostname_length)
     a, b = int_to_hex_octet(encoded_hostname_length + 3)
     j, k = int_to_hex_octet(encoded_hostname_length + 5)
-    sni_header = [
+    sni_extension = [
         0x00, 0x00,
         j, k, a, b,
         0x00,
         x, y
     ]
 
-    sni_header = sni_header + list(encoded_hostname)
-    return sni_header, len(sni_header)
+    sni_extension = sni_extension + list(encoded_hostname)
+    return sni_extension
 
 
-def build_client_hello(version, list_of_ciphers, hostname):
-    # TODO: The code to get the various length values is butt ugly. Revisit.
-    cipher_list = get_cipher_value(list_of_ciphers)
-    sni_header, sni_length = build_sni(hostname)
-
-    # Various length values for the headers
-    cipher_suite_length = int_to_hex_octet(len(cipher_list))
-    tls_header_length = int_to_hex_octet(len(cipher_list) + 109 + sni_length)
-    handshake_header_length = int_to_hex_octet(
-        len(cipher_list) + 105 + sni_length)
-
-    ec_extensions_length = int_to_hex_octet(64 + sni_length)
-
-    x, y = tls_header_length
-    tls_header = [
-        0x16,             # Content type (0x16 for handshake)
-        0x03, 0x00,       # TLS Version (0x0300 is SSLv3)
-        x, y,             # Length (not including tls_header)
-    ]
-
-    x, y = handshake_header_length
-    j, k = cipher_suite_length
-    handshake_header = [
-        0x01,             # Handshake Type (0x01 for ClientHello)
-        0x00, x, y,       # Length of data to follow
-        0x03, tls_version[version],
-        # Random Bytes
-        0x53, 0x43, 0x5b, 0x90, 0x9d, 0x9b, 0x72, 0x0b,
-        0xbc, 0x0c, 0xbc, 0x2b, 0x92, 0xa8, 0x48, 0x97,
-        0xcf, 0xbd, 0x39, 0x04, 0xcc, 0x16, 0x0a, 0x85,
-        0x03, 0x90, 0x9f, 0x77, 0x04, 0x33, 0xd4, 0xde,
-        0x00,             # Session ID
-        j, k,             # Cipher suites length
-    ]
-
-    compression_header = [
-        0x01,             # Compression methods length
-        0x00,             # Compression method (0x00 for NULL)
-    ]
-
-    x, y = ec_extensions_length
+def build_ec_extension():
     ec_extensions = [
-        x, y,             # Extensions length
         # Extension: ec_point_formats
         0x00, 0x0b, 0x00, 0x04, 0x03, 0x00, 0x01, 0x02,
         # Extension: elliptic_curves
@@ -423,8 +381,67 @@ def build_client_hello(version, list_of_ciphers, hostname):
         0x00, 0x03, 0x00, 0x0f, 0x00, 0x10, 0x00, 0x11,
     ]
 
+    return ec_extensions
+
+
+def build_compression_method():
+    compression_header = [
+        0x01,             # Compression methods length
+        0x00,             # Compression method (0x00 for NULL)
+    ]
+
+    return compression_header
+
+
+def build_client_hello(version, list_of_ciphers, hostname):
+    cipher_list = get_cipher_value(list_of_ciphers)
+    cipher_list = list(int_to_hex_octet(len(cipher_list))) + cipher_list
+    cipher_length = len(cipher_list)
+
+    compression_method = build_compression_method()
+    compression_length = len(compression_method)
+
+    # Compose extensions
+    sni_extension = build_sni_extension(hostname)
+    sni_length = len(sni_extension)
+
+    ec_extension = build_ec_extension()
+    ec_length = len(ec_extension)
+
+    extensions = (list(int_to_hex_octet(ec_length + sni_length)) +
+                  ec_extension + sni_extension)
+    extensions_length = len(extensions)
+
+    # Various length values for the headers
+    tls_header_length = int_to_hex_octet(
+        cipher_length + compression_length + extensions_length + 35 + 4
+    )
+    handshake_header_length = int_to_hex_octet(
+        cipher_length + compression_length + extensions_length + 35
+    )
+
+    x, y = tls_header_length
+    tls_header = [
+        0x16,             # Content type (0x16 for handshake)
+        0x03, 0x00,       # TLS Version (0x0300 is SSLv3)
+        x, y,             # Length (not including tls_header)
+    ]
+
+    x, y = handshake_header_length
+    handshake_header = [
+        0x01,             # Handshake Type (0x01 for ClientHello)
+        0x00, x, y,       # Length of data to follow
+        0x03, tls_version[version],
+        # Random Bytes
+        0x53, 0x43, 0x5b, 0x90, 0x9d, 0x9b, 0x72, 0x0b,
+        0xbc, 0x0c, 0xbc, 0x2b, 0x92, 0xa8, 0x48, 0x97,
+        0xcf, 0xbd, 0x39, 0x04, 0xcc, 0x16, 0x0a, 0x85,
+        0x03, 0x90, 0x9f, 0x77, 0x04, 0x33, 0xd4, 0xde,
+        0x00,             # Session ID
+    ]
+
     return (tls_header + handshake_header + cipher_list +
-            compression_header + ec_extensions + sni_header)
+            compression_method + extensions)
 
 
 def send_client_hello(host, port, client_hello):
@@ -460,7 +477,7 @@ def main():
     parser.add_argument("port", type=int, help="Port number")
     args = parser.parse_args()
 
-    cipher_list = [x for x in tls_mapping]
+    cipher_list = list(tls_mapping.keys())
     supported_ciphers = []
     max_tls_ver = 0x00
 
