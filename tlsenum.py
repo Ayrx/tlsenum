@@ -402,15 +402,20 @@ def build_client_hello(version, list_of_ciphers, hostname):
     compression_length = len(compression_method)
 
     # Compose extensions
-    sni_extension = build_sni_extension(hostname)
-    sni_length = len(sni_extension)
+    if tls_version[version] >= 0x01:
+        sni_extension = build_sni_extension(hostname)
+        sni_length = len(sni_extension)
 
-    ec_extension = build_ec_extension()
-    ec_length = len(ec_extension)
+        ec_extension = build_ec_extension()
+        ec_length = len(ec_extension)
 
-    extensions = (list(int_to_hex_octet(ec_length + sni_length)) +
-                  ec_extension + sni_extension)
-    extensions_length = len(extensions)
+        extensions = (list(int_to_hex_octet(ec_length + sni_length)) +
+                      ec_extension + sni_extension)
+        extensions_length = len(extensions)
+
+    else:
+        extensions = [0x00, 0x00]
+        extensions_length = len(extensions)
 
     # Various length values for the headers
     tls_header_length = int_to_hex_octet(
@@ -464,7 +469,7 @@ def parse_server_hello(server_hello):
     if server_hello[0] == 0x15:
         raise ValueError("Handshake Failed")
 
-    tls_version = inverse_tls_version[server_hello[10]]
+    tls_version = server_hello[10]
     cipher_value = ("0x%02X" % server_hello[76] +
                     ":" + "0x%02X" % server_hello[77])
     cipher = inverse_tls_mapping[cipher_value]
@@ -479,7 +484,26 @@ def main():
 
     cipher_list = list(tls_mapping.keys())
     supported_ciphers = []
-    max_tls_ver = 0x00
+    supported_tls_vers = []
+
+    for i in tls_version:
+        try:
+            client_hello = build_client_hello(
+                i, cipher_list, args.host
+            )
+            server_hello = send_client_hello(
+                args.host, args.port, client_hello
+            )
+            supported_tls_vers.append(parse_server_hello(server_hello)[0])
+        except ValueError:
+            continue
+
+    supported_tls_vers = list(set(supported_tls_vers))
+    supported_tls_vers.sort()
+
+    print("TLS Versions supported by server: {0}".format(
+        ", ".join([inverse_tls_version[x] for x in supported_tls_vers])
+    ))
 
     try:
         while len(cipher_list) > 0:
@@ -492,16 +516,11 @@ def main():
             )
             tls_ver, cipher = parse_server_hello(server_hello)
 
-            if tls_version[tls_ver] > max_tls_ver:
-                max_tls_ver = tls_version[tls_ver]
-
             supported_ciphers.append(cipher)
             cipher_list.remove(cipher)
     except ValueError:
         pass
 
-    print("Maximum TLS version supported by server: ",
-          inverse_tls_version[max_tls_ver])
     print("Supported Cipher suites in order of priority: ")
     for i in supported_ciphers:
         print(i)
