@@ -19,7 +19,7 @@ when scanning twitter.com.
 
 ```
 [ayrx@division tlsenum]$ ./tlsenum.py twitter.com 443
-Maximum TLS version supported by server:  1.2
+TLS Versions supported by server: 3.0, 1.0, 1.1, 1.2
 Supported Cipher suites in order of priority:
 TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
 TLS_ECDHE_RSA_WITH_RC4_128_SHA
