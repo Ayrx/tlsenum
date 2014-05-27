@@ -384,21 +384,28 @@ def build_ec_extension():
     return ec_extensions
 
 
-def build_compression_method():
-    compression_header = [
-        0x01,             # Compression methods length
-        0x00,             # Compression method (0x00 for NULL)
-    ]
+def build_compression_method(deflate=False):
+    if deflate:
+        compression_header = [
+            0x02,             # Compression methods length
+            0x01, 0x00,             # Compression method (0x00 for NULL)
+        ]
+
+    else:
+        compression_header = [
+            0x01,             # Compression methods length
+            0x00,             # Compression method (0x00 for NULL)
+        ]
 
     return compression_header
 
 
-def build_client_hello(version, list_of_ciphers, hostname):
+def build_client_hello(version, list_of_ciphers, hostname, deflate=False):
     cipher_list = get_cipher_value(list_of_ciphers)
     cipher_list = list(int_to_hex_octet(len(cipher_list))) + cipher_list
     cipher_length = len(cipher_list)
 
-    compression_method = build_compression_method()
+    compression_method = build_compression_method(deflate)
     compression_length = len(compression_method)
 
     # Compose extensions
@@ -473,7 +480,9 @@ def parse_server_hello(server_hello):
     cipher_value = ("0x%02X" % server_hello[76] +
                     ":" + "0x%02X" % server_hello[77])
     cipher = inverse_tls_mapping[cipher_value]
-    return tls_version, cipher
+    compression_method = server_hello[78]
+
+    return tls_version, cipher, compression_method
 
 
 def main():
@@ -505,6 +514,19 @@ def main():
         ", ".join([inverse_tls_version[x] for x in supported_tls_vers])
     ))
 
+    client_hello = build_client_hello(
+            "1.2", cipher_list, args.host, True
+    )
+    server_hello = send_client_hello(
+        args.host, args.port, client_hello
+    )
+    compression = parse_server_hello(server_hello)[2]
+
+    if compression == 1:
+        print("Deflate compression: yes")
+    else:
+        print("Deflate compression: no")
+
     try:
         while len(cipher_list) > 0:
             client_hello = build_client_hello(
@@ -514,7 +536,7 @@ def main():
             server_hello = send_client_hello(
                 args.host, args.port, client_hello
             )
-            tls_ver, cipher = parse_server_hello(server_hello)
+            cipher = parse_server_hello(server_hello)[1]
 
             supported_ciphers.append(cipher)
             cipher_list.remove(cipher)
