@@ -14,7 +14,8 @@ by the TLS specification, it seems like a fairly common implementation detail.
 Usage
 -----
 
-Using this tool is fairly simple, here is an example of the tool's results
+tlsenum requires Python 3. It was written and has been tested with Python 3.3.
+Using this tool is fairly simple, here is an  example of the tool's results
 when scanning twitter.com.
 
 ```
