@@ -331,7 +331,10 @@ tls_version = {
     "3.0": 0x00,
     "1.0": 0x01,
     "1.1": 0x02,
-    "1.2": 0x03
+    "1.2": 0x03,
+    # This value for SSL 2.0 is completely non-standard. This is just a
+    # convenience value I set for pretty-printing purposes.
+    "2.0": -0x01,
 }
 
 inverse_tls_version = {v: k for k, v in tls_version.items()}
@@ -508,6 +511,23 @@ def build_ssl2_client_hello():
     return client_hello
 
 
+def send_ssl2_client_hello(host, port, client_hello):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((host, port))
+    s.send(bytes(client_hello))
+    length_header = list(s.recv(2))
+
+    # This is to handle the case where the server fails
+    # to respond instead of a returning a handshake failure.
+    # twitter.com does this if none of the cipher suites
+    # specified by the client is supported.
+    if len(length_header) == 0:
+        raise ValueError("Handshake Failed")
+
+    response_length = (length_header[0] - 128) * 256 + length_header[1]
+    return length_header + list(s.recv(response_length))
+
+
 def main():
     parser = argparse.ArgumentParser(description="TLS Scanner")
     parser.add_argument("host", type=str, help="Host to scan")
@@ -517,6 +537,13 @@ def main():
     cipher_list = list(tls_mapping.keys())
     supported_ciphers = []
     supported_tls_vers = []
+
+    client_hello = build_ssl2_client_hello()
+    try:
+        send_ssl2_client_hello(args.host, args.port, client_hello)
+        supported_tls_vers.append(tls_version["2.0"])
+    except ValueError:
+        pass
 
     for i in tls_version:
         try:
@@ -538,7 +565,7 @@ def main():
     ))
 
     client_hello = build_client_hello(
-            "1.2", cipher_list, args.host, True
+        "1.2", cipher_list, args.host, True
     )
     server_hello = send_client_hello(
         args.host, args.port, client_hello
