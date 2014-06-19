@@ -512,21 +512,26 @@ def build_ssl2_client_hello():
 
 
 def send_ssl2_client_hello(host, port, client_hello):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((host, port))
-    s.send(bytes(client_hello))
-    length_header = list(s.recv(2))
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((host, port))
+        s.send(bytes(client_hello))
+        length_header = list(s.recv(2))
 
-    # This is to handle the case where the server fails
-    # to respond instead of a returning a handshake failure.
-    # twitter.com does this if none of the cipher suites
-    # specified by the client is supported.
-    if len(length_header) == 0:
+        # This is to handle the case where the server fails
+        # to respond instead of a returning a handshake failure.
+        # twitter.com does this if none of the cipher suites
+        # specified by the client is supported.
+        if len(length_header) == 0:
+            raise ValueError("Handshake Failed")
+
+        response_length = (length_header[0] - 128) * 256 + length_header[1]
+        return length_header + list(s.recv(response_length))
+
+    # Looks like some servers resets the connection when attempting to connect
+    # using a SSLv2 ClientHello.
+    except ConnectionResetError:
         raise ValueError("Handshake Failed")
-
-    response_length = (length_header[0] - 128) * 256 + length_header[1]
-    return length_header + list(s.recv(response_length))
-
 
 def main():
     parser = argparse.ArgumentParser(description="TLS Scanner")
