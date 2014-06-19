@@ -533,10 +533,46 @@ def send_ssl2_client_hello(host, port, client_hello):
     except ConnectionResetError:
         raise ValueError("Handshake Failed")
 
+
+def verify_certificate(host, port):
+    from OpenSSL import SSL
+    from service_identity import VerificationError
+    from service_identity.pyopenssl import verify_hostname
+
+    ctx = SSL.Context(SSL.SSLv23_METHOD)
+    ctx.set_verify(
+        SSL.VERIFY_PEER, lambda conn, cert, errno, depth, ok: ok
+    )
+    ctx.set_default_verify_paths()
+
+    conn = SSL.Connection(
+        ctx, socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    )
+    conn.connect((host, port))
+
+    try:
+        conn.do_handshake()
+        verify_hostname(conn, host)
+        return True
+
+    except VerificationError:
+        return False
+
+    finally:
+        conn.shutdown()
+        conn.close()
+
+
 def main():
-    parser = argparse.ArgumentParser(description="TLS Scanner")
+    parser = argparse.ArgumentParser(
+        description="A command line tool to enumerate TLS cipher-suites "
+                    "supported by a server.")
     parser.add_argument("host", type=str, help="Host to scan")
     parser.add_argument("port", type=int, help="Port number")
+    parser.add_argument(
+        "--verify-cert", action="store_true", dest="cert",
+        help="Perform certificate verification"
+    )
     args = parser.parse_args()
 
     cipher_list = list(tls_mapping.keys())
@@ -601,6 +637,16 @@ def main():
     print("Supported Cipher suites in order of priority: ")
     for i in supported_ciphers:
         print(i)
+
+    if args.cert:
+        print("")
+        try:
+            if verify_certificate(args.host, args.port):
+                print("Certificate is valid for {0}".format(args.host))
+            else:
+                print("Certificate is invalid for {0}".format(args.host))
+        except ImportError:
+            print("You do not have service_identity installed.")
 
 if __name__ == "__main__":
     main()
