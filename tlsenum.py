@@ -646,7 +646,7 @@ def main():
             else:
                 print("Certificate is invalid for {0}".format(args.host))
         except ImportError:
-            print("You do not have service_identity installed.")
+            print("(--verify-cert) service_identity not installed.")
 
 if __name__ == "__main__":
     main()
