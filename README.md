@@ -1,8 +1,8 @@
 tlsenum
 =======
 
-[![Build Status](https://travis-ci.org/Ayrx/tlsenum.svg?branch=add-travis)](htt
-ps://travis-ci.org/Ayrx/tlsenum)
+[![Build Status](https://travis-ci.org/Ayrx/tlsenum.svg?branch=master)](https:/
+/travis-ci.org/Ayrx/tlsenum)
 [![Coverage Status](https://coveralls.io/repos/Ayrx/tlsenum/badge.png?branch=ma
 ster)](https://coveralls.io/r/Ayrx/tlsenum?branch=master)
 
