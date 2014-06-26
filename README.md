@@ -3,6 +3,8 @@ tlsenum
 
 [![Build Status](https://travis-ci.org/Ayrx/tlsenum.svg?branch=add-travis)](htt
 ps://travis-ci.org/Ayrx/tlsenum)
+[![Coverage Status](https://coveralls.io/repos/Ayrx/tlsenum/badge.png?branch=ma
+ster)](https://coveralls.io/r/Ayrx/tlsenum?branch=master)
 
 tlsenum is a command-line TLS enumeration tool that attempts to enumerate what
 TLS cipher suites a server supports and list them in order of priority.
