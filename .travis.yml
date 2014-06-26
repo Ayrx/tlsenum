@@ -12,3 +12,6 @@ install:
 
 script:
     - ./.travis/run.sh
+
+after_success:
+    - source ~/.venv/bin/activate && coveralls
