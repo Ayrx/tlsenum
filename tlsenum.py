@@ -472,13 +472,13 @@ def send_client_hello(host, port, client_hello):
     if len(tls_header) == 0:
         raise ValueError("Handshake Failed")
 
-    return list(tls_header + s.recv(list(tls_header)[4]))
+    response_length = (tls_header[3] * 256) + tls_header[4]
+    return list(tls_header + s.recv(response_length))
 
 
 def parse_server_hello(server_hello):
     if server_hello[0] == 0x15:
         raise ValueError("Handshake Failed")
-
     tls_version = server_hello[10]
     cipher_value = ("0x%02X" % server_hello[76] +
                     ":" + "0x%02X" % server_hello[77])
