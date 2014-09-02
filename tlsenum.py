@@ -605,18 +605,24 @@ def main():
         ", ".join([inverse_tls_version[x] for x in supported_tls_vers])
     ))
 
-    client_hello = build_client_hello(
-        "1.2", cipher_list, args.host, True
-    )
-    server_hello = send_client_hello(
-        args.host, args.port, client_hello
-    )
-    compression = parse_server_hello(server_hello)[2]
+    try:
+        client_hello = build_client_hello(
+            "1.2", cipher_list, args.host, True
+        )
+        server_hello = send_client_hello(
+            args.host, args.port, client_hello
+        )
+        compression = parse_server_hello(server_hello)[2]
 
-    if compression == 1:
-        print("Deflate compression: yes")
-    else:
-        print("Deflate compression: no")
+        if compression == 1:
+            print("Deflate compression: yes")
+        else:
+            print("Deflate compression: no")
+
+    except ValueError:
+        print(
+            "Deflate compression: Unable to determine due to handshake error"
+        )
 
     try:
         while len(cipher_list) > 0:
