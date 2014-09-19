@@ -24,7 +24,6 @@ class ClientHello(object):
         elif protocol_version == "1.2":
             self._protocol_minor = 3
 
-
     def build(self):
         return hello_constructs.ProtocolVersion.build(
             construct.Container(major=3, minor=self._protocol_minor)
