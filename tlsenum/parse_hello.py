@@ -27,6 +27,18 @@ class ClientHello(object):
         elif protocol_version == "1.2":
             self._protocol_minor = 3
 
+    @property
+    def deflate(self):
+        return self._deflate
+
+    @deflate.setter
+    def deflate(self, deflate):
+        self._deflate = deflate
+        if deflate:
+            self._compression_method = [1, 0]
+        else:
+            self._compression_method = [0]
+
     def build(self):
         protocol_version = construct.Container(
             major=3, minor=self._protocol_minor
@@ -40,8 +52,14 @@ class ClientHello(object):
             length=0, session_id=b""
         )
 
+        compression_method = construct.Container(
+            length=len(self._compression_method),
+            compression_methods=self._compression_method
+        )
+
         return hello_constructs.ClientHello.build(
             construct.Container(
-                version=protocol_version, random=random, session_id=session_id
+                version=protocol_version, random=random, session_id=session_id,
+                compression_methods=compression_method
             )
         )
