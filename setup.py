@@ -7,6 +7,7 @@ setup(
     py_modules=["tlsenum"],
     install_requires=[
         "Click",
+        "Construct"
     ],
     entry_points="""
         [console_scripts]
