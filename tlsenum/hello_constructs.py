@@ -22,7 +22,7 @@ SessionID = Struct(
 CipherSuites = Struct(
     "cipher_suites",
     UBInt16("length"),
-    Array(lambda ctx: ctx.length / 2, Bytes("cipher_suites", 2))
+    Array(lambda ctx: ctx.length, UBInt8("cipher_suites"))
 )
 
 CompressionMethods = Struct(

@@ -28,6 +28,14 @@ class ClientHello(object):
             self._protocol_minor = 3
 
     @property
+    def cipher_suites(self):
+        return self._cipher_suites
+
+    @cipher_suites.setter
+    def cipher_suites(self, cipher_suites):
+        self._cipher_suites = cipher_suites
+
+    @property
     def deflate(self):
         return self._deflate
 
@@ -52,6 +60,10 @@ class ClientHello(object):
             length=0, session_id=b""
         )
 
+        ciphers = construct.Container(
+            length=len(self._cipher_suites), cipher_suites=self._cipher_suites
+        )
+
         compression_method = construct.Container(
             length=len(self._compression_method),
             compression_methods=self._compression_method
@@ -60,6 +72,7 @@ class ClientHello(object):
         return hello_constructs.ClientHello.build(
             construct.Container(
                 version=protocol_version, random=random, session_id=session_id,
-                compression_methods=compression_method
+                cipher_suites=ciphers, compression_methods=compression_method,
+                extensions_length=0, extensions_bytes=b""
             )
         )
