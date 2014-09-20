@@ -21,3 +21,16 @@ def test_compression_method(deflate, result):
     msg.deflate = deflate
     assert msg._compression_method == result
     assert msg.deflate is deflate
+
+
+def test_cipher_suites():
+    msg = ClientHello()
+    msg.cipher_suites = ["TLS_NULL_WITH_NULL_NULL"]
+    assert msg.cipher_suites == ["TLS_NULL_WITH_NULL_NULL"]
+
+
+def test_get_bytes_from_cipher_suites():
+    msg = ClientHello()
+    assert msg._get_bytes_from_cipher_suites(
+        ["TLS_NULL_WITH_NULL_NULL", "TLS_RSA_WITH_NULL_MD5"]
+    ) == [0, 1]

@@ -7,7 +7,8 @@ setup(
     py_modules=["tlsenum"],
     install_requires=[
         "Click",
-        "Construct"
+        "Construct",
+        "enum34"
     ],
     entry_points="""
         [console_scripts]

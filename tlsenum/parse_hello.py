@@ -4,6 +4,7 @@ import os
 import construct
 
 from tlsenum import hello_constructs
+from tlsenum.cipher_suites import CipherSuites
 
 
 class ClientHello(object):
@@ -61,7 +62,10 @@ class ClientHello(object):
         )
 
         ciphers = construct.Container(
-            length=len(self._cipher_suites), cipher_suites=self._cipher_suites
+            length=len(self._cipher_suites) * 2,
+            cipher_suites=self._get_bytes_from_cipher_suites(
+                self._cipher_suites
+            )
         )
 
         compression_method = construct.Container(
@@ -76,3 +80,6 @@ class ClientHello(object):
                 extensions_length=0, extensions_bytes=b""
             )
         )
+
+    def _get_bytes_from_cipher_suites(self, cipher_suites):
+        return [CipherSuites[i].value for i in cipher_suites]
