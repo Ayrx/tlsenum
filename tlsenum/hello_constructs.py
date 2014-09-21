@@ -44,7 +44,6 @@ ClientHello = Struct(
     Bytes("extensions_bytes", lambda ctx: ctx.extensions_length),
 )
 
-
 Handshake = Struct(
     "handshake",
     UBInt8("handshake_type"),
@@ -53,7 +52,6 @@ Handshake = Struct(
         0x01: ClientHello
     })
 )
-
 
 TLSPlaintext = Struct(
     "TLSPlaintext",

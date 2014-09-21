@@ -4,7 +4,7 @@ import os
 import construct
 
 from tlsenum import hello_constructs
-from tlsenum.cipher_suites import CipherSuites
+from tlsenum.mappings import CipherSuites
 
 
 class ClientHello(object):
