@@ -60,3 +60,11 @@ TLSPlaintext = Struct(
     UBInt16("length"),
     Handshake
 )
+
+ECPointFormat = Struct(
+    "extension",
+    UBInt16("extension_type"),
+    UBInt16("extension_length"),
+    UBInt8("ec_point_format_length"),
+    Array(lambda ctx: ctx.ec_point_format_length, UBInt8("ec_point_format"))
+)

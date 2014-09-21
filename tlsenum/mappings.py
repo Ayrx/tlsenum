@@ -322,3 +322,9 @@ class CipherSuites(Enum):
     TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8 = 0xC0AF
     TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCC14
     TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256 = 0xCC13
+
+
+class ECPointFormat(Enum):
+    uncompressed = 0
+    ansiX962_compressed_prime = 1
+    ansiX962_compressed_char2 = 2

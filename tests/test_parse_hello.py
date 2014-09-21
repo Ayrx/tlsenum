@@ -1,6 +1,6 @@
 import pytest
 
-from tlsenum.parse_hello import ClientHello
+from tlsenum.parse_hello import ClientHello, Extensions
 
 
 class TestClientHello(object):
@@ -32,3 +32,29 @@ class TestClientHello(object):
         assert msg._get_bytes_from_cipher_suites(
             ["TLS_NULL_WITH_NULL_NULL", "TLS_RSA_WITH_NULL_MD5"]
         ) == [0, 1]
+
+
+class TestExtensions(object):
+    def test_ec_point_format(self):
+        extension = Extensions()
+        extension.ec_point_format = [
+            "ansiX962_compressed_prime",
+            "uncompressed",
+            "ansiX962_compressed_char2"
+        ]
+
+        assert extension.ec_point_format == [
+            "ansiX962_compressed_prime",
+            "uncompressed",
+            "ansiX962_compressed_char2"
+        ]
+
+        assert extension.build() == b"\x00\x0B\x00\x04\x03\x01\x00\x02"
+
+    def test_get_bytes_from_ec_point_format(self):
+        extension = Extensions()
+        assert extension._get_bytes_from_ec_point_format([
+            "ansiX962_compressed_prime",
+            "uncompressed",
+            "ansiX962_compressed_char2"
+        ]) == [1, 0, 2]
