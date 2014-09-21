@@ -1,4 +1,6 @@
-from construct import Array, Bytes, Struct, UBInt16, UBInt32, UBInt8
+from construct import Array, Bytes, Struct, Switch, UBInt16, UBInt32, UBInt8
+
+from tlsenum.utils import UBInt24
 
 
 ProtocolVersion = Struct(
@@ -40,4 +42,23 @@ ClientHello = Struct(
     CompressionMethods,
     UBInt16("extensions_length"),
     Bytes("extensions_bytes", lambda ctx: ctx.extensions_length),
+)
+
+
+Handshake = Struct(
+    "handshake",
+    UBInt8("handshake_type"),
+    UBInt24("length"),
+    Switch("handshake_struct", lambda ctx: ctx.handshake_type, {
+        0x01: ClientHello
+    })
+)
+
+
+TLSPlaintext = Struct(
+    "TLSPlaintext",
+    UBInt8("content_type"),
+    ProtocolVersion,
+    UBInt16("length"),
+    Handshake
 )

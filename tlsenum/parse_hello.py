@@ -73,11 +73,23 @@ class ClientHello(object):
             compression_methods=self._compression_method
         )
 
-        return hello_constructs.ClientHello.build(
+        client_hello = construct.Container(
+            version=protocol_version, random=random, session_id=session_id,
+            cipher_suites=ciphers, compression_methods=compression_method,
+            extensions_length=0, extensions_bytes=b""
+        )
+
+        handshake = construct.Container(
+            handshake_type=1,
+            length=len(hello_constructs.ClientHello.build(client_hello)),
+            handshake_struct=client_hello
+        )
+
+        return hello_constructs.TLSPlaintext.build(
             construct.Container(
-                version=protocol_version, random=random, session_id=session_id,
-                cipher_suites=ciphers, compression_methods=compression_method,
-                extensions_length=0, extensions_bytes=b""
+                content_type=0x16, version=protocol_version,
+                length=len(hello_constructs.Handshake.build(handshake)),
+                handshake=handshake
             )
         )
 
