@@ -4,7 +4,7 @@ import os
 import construct
 
 from tlsenum import hello_constructs
-from tlsenum.mappings import CipherSuites, ECPointFormat
+from tlsenum.mappings import CipherSuites, ECCurves, ECPointFormat
 
 
 class ClientHello(object):
@@ -101,6 +101,7 @@ class Extensions(object):
 
     def __init__(self):
         self._ec_point_format = None
+        self._ec_curves = None
 
     @property
     def ec_point_format(self):
@@ -110,19 +111,45 @@ class Extensions(object):
     def ec_point_format(self, formats):
         self._ec_point_format = formats
 
+    @property
+    def ec_curves(self):
+        return self._ec_curves
+
+    @ec_curves.setter
+    def ec_curves(self, curves):
+        self._ec_curves = curves
+
     def build(self):
-        ec_point_format = hello_constructs.ECPointFormat.build(
-            construct.Container(
-                extension_type=11,
-                extension_length=len(self._ec_point_format) + 1,
-                ec_point_format_length=len(self._ec_point_format),
-                ec_point_format=self._get_bytes_from_ec_point_format(
-                    self._ec_point_format
+        ret = b""
+
+        if self._ec_point_format is not None:
+            ret += hello_constructs.ECPointFormat.build(
+                construct.Container(
+                    extension_type=11,
+                    extension_length=len(self._ec_point_format) + 1,
+                    ec_point_format_length=len(self._ec_point_format),
+                    ec_point_format=self._get_bytes_from_ec_point_format(
+                        self._ec_point_format
+                    )
                 )
             )
-        )
 
-        return ec_point_format
+        if self._ec_curves is not None:
+            ret += hello_constructs.ECCurves.build(
+                construct.Container(
+                    extension_type=10,
+                    extension_length=(len(self._ec_curves) * 2) + 2,
+                    ec_curves_length=len(self._ec_curves) * 2,
+                    named_curves=self._get_bytes_from_ec_curves(
+                        self._ec_curves
+                    )
+                )
+            )
+
+        return ret
 
     def _get_bytes_from_ec_point_format(self, ec_point_format):
         return [ECPointFormat[i].value for i in ec_point_format]
+
+    def _get_bytes_from_ec_curves(self, ec_curves):
+        return [ECCurves[i].value for i in ec_curves]

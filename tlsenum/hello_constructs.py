@@ -24,7 +24,7 @@ SessionID = Struct(
 CipherSuites = Struct(
     "cipher_suites",
     UBInt16("length"),
-    Array(lambda ctx: ctx.length / 2, UBInt16("cipher_suites"))
+    Array(lambda ctx: ctx.length // 2, UBInt16("cipher_suites"))
 )
 
 CompressionMethods = Struct(
@@ -67,4 +67,12 @@ ECPointFormat = Struct(
     UBInt16("extension_length"),
     UBInt8("ec_point_format_length"),
     Array(lambda ctx: ctx.ec_point_format_length, UBInt8("ec_point_format"))
+)
+
+ECCurves = Struct(
+    "extension",
+    UBInt16("extension_type"),
+    UBInt16("extension_length"),
+    UBInt16("ec_curves_length"),
+    Array(lambda ctx: ctx.ec_curves_length // 2, UBInt16("named_curves"))
 )

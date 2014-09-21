@@ -58,3 +58,17 @@ class TestExtensions(object):
             "uncompressed",
             "ansiX962_compressed_char2"
         ]) == [1, 0, 2]
+
+    def test_ec_curves(self):
+        extension = Extensions()
+        extension.ec_curves = ["sect163k1", "sect163r1", "sect163r2"]
+        assert extension.ec_curves == ["sect163k1", "sect163r1", "sect163r2"]
+        assert extension.build() == (
+            b"\x00\x0A\x00\x08\x00\x06\x00\x01\x00\x02\x00\x03"
+        )
+
+    def test_get_bytes_from_ec_curves(self):
+        extension = Extensions()
+        assert extension._get_bytes_from_ec_curves([
+            "sect163k1", "sect163r1", "sect163r2"
+        ]) == [1, 2, 3]
