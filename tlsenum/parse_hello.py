@@ -133,39 +133,54 @@ class Extensions(object):
         ret = b""
 
         if self._ec_point_format is not None:
-            ret += hello_constructs.ECPointFormat.build(
+            ec_point_format_struct = construct.Container(
+                ec_point_format_length=len(self._ec_point_format),
+                ec_point_format=self._get_bytes_from_ec_point_format(
+                    self._ec_point_format
+                )
+            )
+            ret += hello_constructs.Extension.build(
                 construct.Container(
                     extension_type=11,
-                    extension_length=len(self._ec_point_format) + 1,
-                    ec_point_format_length=len(self._ec_point_format),
-                    ec_point_format=self._get_bytes_from_ec_point_format(
-                        self._ec_point_format
-                    )
+                    extension_length=len(hello_constructs.ECPointFormat.build(
+                        ec_point_format_struct
+                    )),
+                    extension_struct=ec_point_format_struct
                 )
             )
 
         if self._ec_curves is not None:
-            ret += hello_constructs.ECCurves.build(
+            ec_curves_struct = construct.Container(
+                ec_curves_length=len(self._ec_curves) * 2,
+                named_curves=self._get_bytes_from_ec_curves(
+                    self._ec_curves
+                )
+            )
+            ret += hello_constructs.Extension.build(
                 construct.Container(
                     extension_type=10,
-                    extension_length=(len(self._ec_curves) * 2) + 2,
-                    ec_curves_length=len(self._ec_curves) * 2,
-                    named_curves=self._get_bytes_from_ec_curves(
-                        self._ec_curves
-                    )
+                    extension_length=len(hello_constructs.ECCurves.build(
+                        ec_curves_struct
+                    )),
+                    extension_struct=ec_curves_struct
                 )
             )
 
         if self._hostname is not None:
             encoded_hostname = idna.encode(self._hostname)
-            ret += hello_constructs.ServerName.build(
+            sni_struct = construct.Container(
+                server_name_list_length=len(encoded_hostname) + 3,
+                name_type=0,
+                server_name_length=len(encoded_hostname),
+                server_name=encoded_hostname
+            )
+            ret += hello_constructs.Extension.build(
                 construct.Container(
                     extension_type=0,
-                    extension_length=len(encoded_hostname) + 3 + 2,
-                    server_name_list_length=len(encoded_hostname) + 3,
-                    name_type=0,
-                    server_name_length=len(encoded_hostname),
-                    server_name=encoded_hostname
+                    extension_length=len(hello_constructs.ServerName.build(
+                        sni_struct
+                    )),
+                    extension_struct=sni_struct
                 )
             )
 

@@ -62,27 +62,33 @@ TLSPlaintext = Struct(
 )
 
 ECPointFormat = Struct(
-    "extension",
-    UBInt16("extension_type"),
-    UBInt16("extension_length"),
+    "ec_point_format",
     UBInt8("ec_point_format_length"),
     Array(lambda ctx: ctx.ec_point_format_length, UBInt8("ec_point_format"))
 )
 
 ECCurves = Struct(
-    "extension",
-    UBInt16("extension_type"),
-    UBInt16("extension_length"),
+    "ec_curves",
     UBInt16("ec_curves_length"),
     Array(lambda ctx: ctx.ec_curves_length // 2, UBInt16("named_curves"))
 )
 
 ServerName = Struct(
-    "extension",
-    UBInt16("extension_type"),
-    UBInt16("extension_length"),
+    "server_name",
     UBInt16("server_name_list_length"),
     UBInt8("name_type"),
     UBInt16("server_name_length"),
     Bytes("server_name", lambda ctx: ctx.server_name_length)
+)
+
+
+Extension = Struct(
+    "extension",
+    UBInt16("extension_type"),
+    UBInt16("extension_length"),
+    Switch("extension_struct", lambda ctx: ctx.extension_type, {
+        0: ServerName,
+        10: ECCurves,
+        11: ECPointFormat
+    })
 )
