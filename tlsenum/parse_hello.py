@@ -2,6 +2,7 @@ import time
 import os
 
 import construct
+import idna
 
 from tlsenum import hello_constructs
 from tlsenum.mappings import CipherSuites, ECCurves, ECPointFormat
@@ -102,6 +103,7 @@ class Extensions(object):
     def __init__(self):
         self._ec_point_format = None
         self._ec_curves = None
+        self._hostname = None
 
     @property
     def ec_point_format(self):
@@ -118,6 +120,14 @@ class Extensions(object):
     @ec_curves.setter
     def ec_curves(self, curves):
         self._ec_curves = curves
+
+    @property
+    def sni(self):
+        return self._hostname
+
+    @sni.setter
+    def sni(self, hostname):
+        self._hostname = hostname
 
     def build(self):
         ret = b""
@@ -143,6 +153,19 @@ class Extensions(object):
                     named_curves=self._get_bytes_from_ec_curves(
                         self._ec_curves
                     )
+                )
+            )
+
+        if self._hostname is not None:
+            encoded_hostname = idna.encode(self._hostname)
+            ret += hello_constructs.ServerName.build(
+                construct.Container(
+                    extension_type=0,
+                    extension_length=len(encoded_hostname) + 3 + 2,
+                    server_name_list_length=len(encoded_hostname) + 3,
+                    name_type=0,
+                    server_name_length=len(encoded_hostname),
+                    server_name=encoded_hostname
                 )
             )
 

@@ -72,3 +72,11 @@ class TestExtensions(object):
         assert extension._get_bytes_from_ec_curves([
             "sect163k1", "sect163r1", "sect163r2"
         ]) == [1, 2, 3]
+
+    def test_sni_extension(self):
+        extension = Extensions()
+        extension.sni = "ayrx.me"
+        assert extension.sni == "ayrx.me"
+        assert extension.build() == (
+            b"\x00\x00\x00\x0C\x00\x0A\x00\x00\x07\x61\x79\x72\x78\x2E\x6D\x65"
+        )

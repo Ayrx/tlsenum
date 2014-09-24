@@ -76,3 +76,13 @@ ECCurves = Struct(
     UBInt16("ec_curves_length"),
     Array(lambda ctx: ctx.ec_curves_length // 2, UBInt16("named_curves"))
 )
+
+ServerName = Struct(
+    "extension",
+    UBInt16("extension_type"),
+    UBInt16("extension_length"),
+    UBInt16("server_name_list_length"),
+    UBInt8("name_type"),
+    UBInt16("server_name_length"),
+    Bytes("server_name", lambda ctx: ctx.server_name_length)
+)

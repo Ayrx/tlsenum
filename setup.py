@@ -8,7 +8,8 @@ setup(
     install_requires=[
         "Click",
         "Construct",
-        "enum34"
+        "enum34",
+        "idna"
     ],
     entry_points="""
         [console_scripts]
