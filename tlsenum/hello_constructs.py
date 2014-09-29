@@ -44,6 +44,15 @@ ClientHello = Struct(
     Bytes("extensions_bytes", lambda ctx: ctx.extensions_length),
 )
 
+ServerHello = Struct(
+    "ServerHello",
+    ProtocolVersion,
+    Random,
+    SessionID,
+    UBInt16("cipher_suite"),
+    UBInt8("compression_method")
+)
+
 Handshake = Struct(
     "handshake",
     UBInt8("handshake_type"),
@@ -80,7 +89,6 @@ ServerName = Struct(
     UBInt16("server_name_length"),
     Bytes("server_name", lambda ctx: ctx.server_name_length)
 )
-
 
 Extension = Struct(
     "extension",
