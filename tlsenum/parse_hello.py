@@ -93,7 +93,7 @@ class ClientHello(object):
             construct.Container(
                 content_type=0x16, version=protocol_version,
                 length=len(hello_constructs.Handshake.build(handshake)),
-                handshake=handshake
+                content=handshake
             )
         )
 
@@ -219,17 +219,30 @@ class ServerHello(object):
     def parse_server_hello(cls, data):
         server_hello = hello_constructs.TLSPlaintext.parse(data)
 
-        protocol_minor = server_hello.handshake.handshake_struct.version.minor
+        if server_hello.content_type == 21:
+            if server_hello.content.alert_description == 40:
+                raise HandshakeFailure()
+
+            else:
+                raise ValueError("Unknown TLS Alert, type {0}".format(
+                    server_hello.content.alert_description
+                ))
+
+        protocol_minor = server_hello.content.handshake_struct.version.minor
 
         protocol_version = TLSProtocolVersion[protocol_minor]
 
         cipher_suite = CipherSuites(
-            server_hello.handshake.handshake_struct.cipher_suite
+            server_hello.content.handshake_struct.cipher_suite
         ).name
 
-        if server_hello.handshake.handshake_struct.compression_method == 1:
+        if server_hello.content.handshake_struct.compression_method == 1:
             deflate = True
         else:
             deflate = False
 
         return cls(protocol_version, cipher_suite, deflate)
+
+
+class HandshakeFailure(Exception):
+    pass

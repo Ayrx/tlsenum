@@ -1,6 +1,8 @@
 import pytest
 
-from tlsenum.parse_hello import ClientHello, Extensions, ServerHello
+from tlsenum.parse_hello import (
+    ClientHello, Extensions, HandshakeFailure, ServerHello
+)
 
 
 class TestClientHello(object):
@@ -109,3 +111,12 @@ class TestServerHello(object):
         assert server_hello.cipher_suite == (
             "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
         )
+
+    def test_parse_alert(self):
+        handshake_failure_alert_msg = b"\x15\x03\x03\x00\x02\x02\x28"
+        with pytest.raises(HandshakeFailure):
+            ServerHello.parse_server_hello(handshake_failure_alert_msg)
+
+        close_notify_alert_msg = b"\x15\x03\x03\x00\x02\x02\x00"
+        with pytest.raises(ValueError):
+            ServerHello.parse_server_hello(close_notify_alert_msg)

@@ -63,12 +63,21 @@ Handshake = Struct(
     })
 )
 
+Alert = Struct(
+    "alert",
+    UBInt8("alert_level"),
+    UBInt8("alert_description")
+)
+
 TLSPlaintext = Struct(
     "TLSPlaintext",
     UBInt8("content_type"),
     ProtocolVersion,
     UBInt16("length"),
-    Handshake
+    Switch("content", lambda ctx: ctx.content_type, {
+        21: Alert,
+        22: Handshake
+    })
 )
 
 ECPointFormat = Struct(
