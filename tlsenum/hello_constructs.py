@@ -58,7 +58,8 @@ Handshake = Struct(
     UBInt8("handshake_type"),
     UBInt24("length"),
     Switch("handshake_struct", lambda ctx: ctx.handshake_type, {
-        0x01: ClientHello
+        1: ClientHello,
+        2: ServerHello
     })
 )
 
