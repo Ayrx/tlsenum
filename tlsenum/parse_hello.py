@@ -43,6 +43,14 @@ class ClientHello(object):
         else:
             self._compression_method = [0]
 
+    @property
+    def extensions(self):
+        return self._extensions
+
+    @extensions.setter
+    def extensions(self, value):
+        self._extensions = value
+
     def build(self):
         protocol_version = construct.Container(
             major=3, minor=self._protocol_minor
@@ -71,7 +79,8 @@ class ClientHello(object):
         client_hello = construct.Container(
             version=protocol_version, random=random, session_id=session_id,
             cipher_suites=ciphers, compression_methods=compression_method,
-            extensions_length=0, extensions_bytes=b""
+            extensions_length=len(self._extensions),
+            extensions_bytes=self._extensions
         )
 
         handshake = construct.Container(
