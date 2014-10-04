@@ -191,3 +191,48 @@ class Extensions(object):
 
     def _get_bytes_from_ec_curves(self, ec_curves):
         return [ECCurves[i].value for i in ec_curves]
+
+
+class ServerHello(object):
+
+    def __init__(self, protocol_version, cipher_suite, deflate):
+        self._protocol_version = protocol_version
+        self._cipher_suite = cipher_suite
+        self._deflate = deflate
+
+    @property
+    def protocol_version(self):
+        return self._protocol_version
+
+    @property
+    def cipher_suite(self):
+        return self._cipher_suite
+
+    @property
+    def deflate(self):
+        return self._deflate
+
+    @classmethod
+    def parse_server_hello(cls, data):
+        server_hello = hello_constructs.TLSPlaintext.parse(data)
+
+        protocol_minor = server_hello.handshake.handshake_struct.version.minor
+        if protocol_minor == 0:
+            protocol_version = "3.0"
+        elif protocol_minor == 1:
+            protocol_version = "1.0"
+        elif protocol_minor == 2:
+            protocol_version = "1.1"
+        elif protocol_minor == 3:
+            protocol_version = "1.2"
+
+        cipher_suite = CipherSuites(
+            server_hello.handshake.handshake_struct.cipher_suite
+        ).name
+
+        if server_hello.handshake.handshake_struct.compression_method == 1:
+            deflate = True
+        else:
+            deflate = False
+
+        return cls(protocol_version, cipher_suite, deflate)
