@@ -35,6 +35,11 @@ class TestClientHello(object):
             ["TLS_NULL_WITH_NULL_NULL", "TLS_RSA_WITH_NULL_MD5"]
         ) == [0, 1]
 
+    def test_extensions(self):
+        msg = ClientHello()
+        msg.extensions = b"mock"
+        assert msg.extensions == b"mock"
+
 
 class TestExtensions(object):
     def test_ec_point_format(self):
