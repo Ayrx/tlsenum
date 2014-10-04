@@ -40,6 +40,38 @@ class TestClientHello(object):
         msg.extensions = b"mock"
         assert msg.extensions == b"mock"
 
+    def test_build(self, monkeypatch):
+        def mock_urandom(len):
+            return (
+                b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+                b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            )
+
+        monkeypatch.setattr("time.time", lambda: 0)
+        monkeypatch.setattr("os.urandom", mock_urandom)
+
+        msg = ClientHello()
+        msg.protocol_version = "1.2"
+        msg.deflate = False
+        msg.cipher_suites = ["TLS_RSA_WITH_NULL_MD5"]
+        msg.extensions = b""
+
+        assert msg.build() == (
+            b"\x16"
+            b"\x03\x03"
+            b"\x00\x2F"
+            b"\x01"
+            b"\x00\x00\x2B"
+            b"\x03\x03"
+            b"\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00"
+            b"\x00\x02\x00\x01"
+            b"\x01\x00"
+            b"\x00\x00"
+        )
+
 
 class TestExtensions(object):
     def test_ec_point_format(self):
