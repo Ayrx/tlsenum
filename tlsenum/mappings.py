@@ -359,3 +359,6 @@ class ECCurves(Enum):
     brainpoolP256r1 = 26
     brainpoolP384r1 = 27
     brainpoolP512r1 = 28
+
+
+TLSProtocolVersion = ["3.0", "1.0", "1.1", "1.2"]

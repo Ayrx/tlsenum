@@ -5,7 +5,9 @@ import construct
 import idna
 
 from tlsenum import hello_constructs
-from tlsenum.mappings import CipherSuites, ECCurves, ECPointFormat
+from tlsenum.mappings import (
+    CipherSuites, ECCurves, ECPointFormat, TLSProtocolVersion
+)
 
 
 class ClientHello(object):
@@ -19,15 +21,7 @@ class ClientHello(object):
         assert protocol_version in ["3.0", "1.0", "1.1", "1.2"]
 
         self._protocol_version = protocol_version
-
-        if protocol_version == "3.0":
-            self._protocol_minor = 0
-        elif protocol_version == "1.0":
-            self._protocol_minor = 1
-        elif protocol_version == "1.1":
-            self._protocol_minor = 2
-        elif protocol_version == "1.2":
-            self._protocol_minor = 3
+        self._protocol_minor = TLSProtocolVersion.index(protocol_version)
 
     @property
     def cipher_suites(self):
@@ -217,14 +211,8 @@ class ServerHello(object):
         server_hello = hello_constructs.TLSPlaintext.parse(data)
 
         protocol_minor = server_hello.handshake.handshake_struct.version.minor
-        if protocol_minor == 0:
-            protocol_version = "3.0"
-        elif protocol_minor == 1:
-            protocol_version = "1.0"
-        elif protocol_minor == 2:
-            protocol_version = "1.1"
-        elif protocol_minor == 3:
-            protocol_version = "1.2"
+
+        protocol_version = TLSProtocolVersion[protocol_minor]
 
         cipher_suite = CipherSuites(
             server_hello.handshake.handshake_struct.cipher_suite
