@@ -246,3 +246,34 @@ class ServerHello(object):
 
 class HandshakeFailure(Exception):
     pass
+
+
+def construct_sslv2_client_hello():
+    """
+    Returns a SSLv2 ClientHello message in bytes.
+
+    This is a quick and dirty function to return a SSLv2 ClientHello with all
+    7 specified cipher suites. I don't really want to enumerate the supported
+    SSLv2 cipher suites so this doesn't have to be flexible..
+
+    """
+
+    return bytes([
+        0x80, 0x2e,         # Length of record
+        0x01,               # Handshake Type (0x01 for ClientHello)
+        0x00, 0x02,         # SSL Version Identifier (0x0002 for SSLv2)
+        0x00, 0x15,         # Length of cipher suites list
+        0x00, 0x00,         # Session ID Length
+        0x00, 0x10,         # Challenge Length
+        # Cipher suites list
+        0x01, 0x00, 0x80,
+        0x02, 0x00, 0x80,
+        0x03, 0x00, 0x80,
+        0x04, 0x00, 0x80,
+        0x05, 0x00, 0x80,
+        0x06, 0x00, 0x40,
+        0x07, 0x00, 0xc0,
+        # Challenge
+        0x53, 0x43, 0x5b, 0x90, 0x9d, 0x9b, 0x72, 0x0b,
+        0xbc, 0x0c, 0xbc, 0x2b, 0x92, 0xa8, 0x48, 0x97,
+    ])

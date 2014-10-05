@@ -5,7 +5,8 @@ import click
 from construct import UBInt16
 
 from tlsenum.parse_hello import (
-    ClientHello, Extensions, HandshakeFailure, ServerHello
+    ClientHello, Extensions, HandshakeFailure, ServerHello,
+    construct_sslv2_client_hello
 )
 from tlsenum.mappings import (
     CipherSuites, ECCurves, ECPointFormat, TLSProtocolVersion
@@ -41,6 +42,34 @@ def send_client_hello(host, port, data):
         raise HandshakeFailure()
 
 
+def send_sslv2_client_hello(host, port):
+    """
+    Sends a SSLv2 ClientHello message in bytes.
+
+    If server supports SSLv2, returns None. Else raise a HandshakeFailure().
+
+    """
+    data = construct_sslv2_client_hello()
+
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((host, port))
+        s.send(data)
+
+        server_hello = s.recv(3)
+
+        if len(server_hello) == 0:
+            raise HandshakeFailure()
+
+        if server_hello[2] == 4:
+            pass
+        else:
+            raise HandshakeFailure()
+
+    except ConnectionResetError:
+        raise HandshakeFailure()
+
+
 @click.command(context_settings=CONTEXT_SETTINGS)
 @click.argument("host", type=click.STRING)
 @click.argument("port", type=click.INT)
@@ -64,6 +93,12 @@ def cli(host, port, verify_cert):
 
     supported_tls_versions = []
 
+    try:
+        send_sslv2_client_hello(host, port)
+        supported_tls_versions.append("2.0")
+    except HandshakeFailure:
+        pass
+
     for i in TLSProtocolVersion:
         client_hello.protocol_version = i
         try:
@@ -76,7 +111,7 @@ def cli(host, port, verify_cert):
 
     supported_tls_versions = sorted(
         list(set(supported_tls_versions)),
-        key=lambda x: TLSProtocolVersion.index(x)
+        key=lambda x: 0 if x=="2.0" else TLSProtocolVersion.index(x) + 1
     )
 
     print("TLS Versions supported by server: {0}".format(
