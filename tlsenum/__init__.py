@@ -111,7 +111,7 @@ def cli(host, port, verify_cert):
 
     supported_tls_versions = sorted(
         list(set(supported_tls_versions)),
-        key=lambda x: 0 if x=="2.0" else TLSProtocolVersion.index(x) + 1
+        key=lambda x: 0 if x == "2.0" else TLSProtocolVersion.index(x) + 1
     )
 
     print("TLS Versions supported by server: {0}".format(
