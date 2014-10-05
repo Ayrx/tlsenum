@@ -74,8 +74,10 @@ def cli(host, port, verify_cert):
 
         supported_tls_versions.append(server_hello.protocol_version)
 
-    supported_tls_versions = list(set(supported_tls_versions))
-    supported_tls_versions.sort(key=lambda x: TLSProtocolVersion.index(x))
+    supported_tls_versions = sorted(
+        list(set(supported_tls_versions)),
+        key=lambda x: TLSProtocolVersion.index(x)
+    )
 
     print("TLS Versions supported by server: {0}".format(
         ", ".join(supported_tls_versions)
