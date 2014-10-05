@@ -40,6 +40,7 @@ def send_client_hello(host, port, data):
     except ConnectionResetError:
         raise HandshakeFailure()
 
+
 @click.command(context_settings=CONTEXT_SETTINGS)
 @click.argument("host", type=click.STRING)
 @click.argument("port", type=click.INT)
@@ -72,7 +73,6 @@ def cli(host, port, verify_cert):
             break
 
         supported_tls_versions.append(server_hello.protocol_version)
-
 
     supported_tls_versions = list(set(supported_tls_versions))
     supported_tls_versions.sort(key=lambda x: TLSProtocolVersion.index(x))
