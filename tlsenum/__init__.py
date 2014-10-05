@@ -73,7 +73,6 @@ def send_sslv2_client_hello(host, port):
 @click.command(context_settings=CONTEXT_SETTINGS)
 @click.argument("host", type=click.STRING)
 @click.argument("port", type=click.INT)
-@click.option("--verify-cert", is_flag=True)
 def cli(host, port, verify_cert):
     """
     A command line tool to enumerate TLS cipher-suites supported by a server.
