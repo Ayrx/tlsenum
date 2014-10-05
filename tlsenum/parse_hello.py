@@ -248,16 +248,18 @@ class HandshakeFailure(Exception):
     pass
 
 
-def construct_sslv2_client_hello():
+def construct_sslv2_client_hello():  # pragma: no cover
     """
     Returns a SSLv2 ClientHello message in bytes.
 
     This is a quick and dirty function to return a SSLv2 ClientHello with all
     7 specified cipher suites. I don't really want to enumerate the supported
-    SSLv2 cipher suites so this doesn't have to be flexible..
+    SSLv2 cipher suites so this doesn't have to be flexible...
+
+    This function does not require test coverage because I am simply returning
+    bytes constructed from a fix list.
 
     """
-
     return bytes([
         0x80, 0x2e,         # Length of record
         0x01,               # Handshake Type (0x01 for ClientHello)
