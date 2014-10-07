@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function
+
 import socket
 
 import click
@@ -38,7 +40,7 @@ def send_client_hello(host, port, data):
 
         return server_hello
 
-    except ConnectionResetError:
+    except socket.error:
         raise HandshakeFailure()
 
 
@@ -66,7 +68,7 @@ def send_sslv2_client_hello(host, port):
         else:
             raise HandshakeFailure()
 
-    except ConnectionResetError:
+    except socket.error:
         raise HandshakeFailure()
 
 

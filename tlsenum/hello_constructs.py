@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function
+
 from construct import Array, Bytes, Struct, Switch, UBInt16, UBInt32, UBInt8
 
 from tlsenum.utils import UBInt24

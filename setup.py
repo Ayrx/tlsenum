@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function
+
 from setuptools import setup, find_packages
 
 setup(
@@ -8,7 +10,8 @@ setup(
         "Click",
         "Construct",
         "enum34",
-        "idna"
+        "idna",
+        "six"
     ],
     entry_points="""
         [console_scripts]
