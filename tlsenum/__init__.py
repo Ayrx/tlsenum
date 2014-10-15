@@ -106,7 +106,7 @@ def cli(host, port):
             server_hello = send_client_hello(host, port, client_hello.build())
             server_hello = ServerHello.parse_server_hello(server_hello)
         except HandshakeFailure:
-            break
+            continue
 
         supported_tls_versions.append(server_hello.protocol_version)
 
