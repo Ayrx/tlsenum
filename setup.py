@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 setup(
     name="tlsenum",
     description="A TLS ciphersuite enumeration tool.",
-    version="0.1",
+    version="0.2",
     install_requires=[
         "Click",
         "Construct",
