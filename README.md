@@ -17,7 +17,8 @@ by the TLS specification, it seems like a fairly common implementation detail.
 Installation
 ------------
 
-`tlsenum` requires Python 3 and can be installed with pip.
+`tlsenum` can be used with Python 2.7, 3.3 or 3.4 and can be installed with
+pip.
 
     $ pip install tlsenum
 
