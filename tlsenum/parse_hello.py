@@ -225,6 +225,9 @@ class ServerHello(object):
             if server_hello.content.alert_description == 40:
                 raise HandshakeFailure()
 
+            elif server_hello.content.alert_description == 70:
+                raise ProtocolVersionFailure()
+
             else:
                 raise ValueError("Unknown TLS Alert, type {0}".format(
                     server_hello.content.alert_description
@@ -247,6 +250,10 @@ class ServerHello(object):
 
 
 class HandshakeFailure(Exception):
+    pass
+
+
+class ProtocolVersionFailure(Exception):
     pass
 
 

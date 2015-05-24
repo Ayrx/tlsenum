@@ -7,8 +7,8 @@ import click
 from construct import UBInt16
 
 from tlsenum.parse_hello import (
-    ClientHello, Extensions, HandshakeFailure, ServerHello,
-    construct_sslv2_client_hello
+    ClientHello, Extensions, HandshakeFailure, ProtocolVersionFailure,
+    ServerHello, construct_sslv2_client_hello
 )
 from tlsenum.mappings import (
     CipherSuites, ECCurves, ECPointFormat, TLSProtocolVersion
@@ -106,6 +106,9 @@ def cli(host, port):
             server_hello = send_client_hello(host, port, client_hello.build())
             server_hello = ServerHello.parse_server_hello(server_hello)
         except HandshakeFailure:
+            continue
+
+        except ProtocolVersionFailure:
             continue
 
         supported_tls_versions.append(server_hello.protocol_version)
