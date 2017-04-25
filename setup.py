@@ -8,7 +8,7 @@ setup(
     version="0.3",
     install_requires=[
         "Click",
-        "Construct",
+        "Construct<2.8",
         "enum34",
         "idna",
         "six"
